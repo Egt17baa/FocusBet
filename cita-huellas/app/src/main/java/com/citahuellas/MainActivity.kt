@@ -6,7 +6,9 @@ import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
@@ -62,9 +64,20 @@ class MainActivity : ComponentActivity() {
             settings.domStorageEnabled = true
             setBackgroundColor(Color.WHITE)
             webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) =
+                    controller.diagnostics.onLoad(url)
                 override fun onPageFinished(view: WebView, url: String) = controller.onPageFinished()
-                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) =
-                    request.url.host?.endsWith("administracionelectronica.gob.es") != true
+                override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
+                    if (request.isForMainFrame) controller.diagnostics.onError(error.errorCode, error.description.toString())
+                }
+                override fun onReceivedHttpError(view: WebView, request: WebResourceRequest, response: WebResourceResponse) {
+                    if (request.isForMainFrame) controller.diagnostics.onHttpError(response.statusCode)
+                }
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                    val blocked = request.url.host?.endsWith("administracionelectronica.gob.es") != true
+                    if (blocked && request.isForMainFrame) controller.diagnostics.onBlocked(request.url.toString())
+                    return blocked
+                }
             }
         }
         sms = SmsConsent(this) { code ->
@@ -97,6 +110,7 @@ class MainActivity : ComponentActivity() {
                             controller.start(p, c.phone, c.email, mine, settings)
                         },
                         cancel = { controller.cancel() },
+                        openWeb = { controller.openOnly() },
                         step = { p, mine -> val c = contactFor(p, mine, settings); controller.doCurrentStep(p, c.phone, c.email, settings) },
                         fillSms = { controller.fillSms(it) },
                         setSmsCode = { smsCode = it },

@@ -42,6 +42,7 @@ class SearchController(
     private val notifier: Notifier,
     private val scope: CoroutineScope,
     private val onSmsStep: () -> Unit,
+    val diagnostics: PageDiagnostics = PageDiagnostics(),
 ) {
     var state by mutableStateOf(SearchUiState())
         private set
@@ -62,6 +63,13 @@ class SearchController(
         listenSms = useMyPhone
         notifiedFound = false
         state = SearchUiState("Abriendo la web…", 1, settings.maxAttempts, null, StatusColor.SEARCHING)
+        web.loadUrl(ENTRY_URL)
+    }
+
+    /** Abre la web sin buscar, para comprobar a mano que carga. */
+    fun openOnly() {
+        cancel()
+        state = SearchUiState("Abriendo la web sin buscar…")
         web.loadUrl(ENTRY_URL)
     }
 
@@ -100,8 +108,9 @@ class SearchController(
 
     private suspend fun currentKind(): PageKind? {
         eval(bridgeJs)
-        val snap = parseSnapshot(eval(JsBridge.SNAPSHOT)) ?: return null
-        return PageClassifier.classify(snap)
+        val snap = parseSnapshot(eval(JsBridge.SNAPSHOT))
+        diagnostics.onText(snap?.text)
+        return snap?.let(PageClassifier::classify)
     }
 
     private suspend fun step(e: SearchEngine) {
@@ -109,7 +118,9 @@ class SearchController(
         when (val action = e.next(kind)) {
             is Action.WaitAndRestart -> waitAndRestart(action)
             is Action.Found -> found(action.kind)
-            is Action.Stop -> stop(action.reason)
+            is Action.Stop -> stop(
+                if (kind in setOf(PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
+            )
             else -> {
                 val missing = JsBridge.missingField(eval(JsBridge.js(action)!!))
                 if (missing != null) {
@@ -158,7 +169,7 @@ class SearchController(
     }
 
     private fun stop(reason: String) {
-        notifier.stopped(reason)
+        notifier.stopped(reason.substringBefore('\n'))
         state = state.copy(status = reason, color = StatusColor.STOPPED, secondsLeft = null)
     }
 

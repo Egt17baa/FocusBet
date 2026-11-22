@@ -27,6 +27,7 @@ import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -71,6 +72,7 @@ fun SearchScreen(
     onUseMine: (Boolean) -> Unit,
     onStart: (Profile, Boolean) -> Unit,
     onCancel: () -> Unit,
+    onOpenWeb: () -> Unit,
     onStep: (Profile, Boolean) -> Unit,
     onFillSms: (String) -> Unit,
 ) {
@@ -112,6 +114,7 @@ fun SearchScreen(
                 Button({ person?.let { onStart(it, useMine) } }, enabled = person != null && contactOk, shape = CircleShape, modifier = Modifier.fillMaxWidth()) {
                     Text("Buscar cita · cada ${settings.intervalSec} s, hasta ${settings.maxAttempts} veces")
                 }
+                TextButton(onOpenWeb, modifier = Modifier.fillMaxWidth()) { Text("Solo abrir la web") }
             }
         }
 
