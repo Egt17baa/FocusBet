@@ -82,6 +82,7 @@ class SearchController(
 
     /** Lo llama el WebViewClient. Si llegan varias cargas seguidas, solo cuenta la última. */
     fun onPageFinished() {
+        diagnostics.event("terminada ${web.url}")
         val e = engine ?: return
         if (e.finished || waiting) return
         val seq = ++pageSeq
@@ -110,6 +111,7 @@ class SearchController(
         eval(bridgeJs)
         val snap = parseSnapshot(eval(JsBridge.SNAPSHOT))
         diagnostics.onText(snap?.text)
+        diagnostics.onPageDebug(runCatching { kotlinx.serialization.json.Json.decodeFromString<String>(eval("CH.debug()") ?: "null") }.getOrNull())
         return snap?.let(PageClassifier::classify)
     }
 

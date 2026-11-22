@@ -34,4 +34,21 @@ class PageDiagnosticsTest {
         d.onLoad("https://a/")
         assertEquals("URL: https://a/", d.summary())
     }
+
+    @Test fun eventLogSurvivesNewLoadsAndIsCapped() {
+        val d = PageDiagnostics()
+        repeat(30) { d.event("finished #$it") }
+        d.onLoad("https://b/")
+        val full = d.fullReport()
+        assertTrue(full, full.contains("finished #29"))
+        assertTrue(full, !full.contains("finished #5\n"))
+        assertTrue(full, full.contains("inicio https://b/"))
+    }
+
+    @Test fun pageDebugIsInFullReport() {
+        val d = PageDiagnostics()
+        d.onPageDebug("{\"href\":\"https://x/\",\"htmlLen\":1234}")
+        assertTrue(d.fullReport().contains("htmlLen"))
+        assertTrue(d.summary().contains("htmlLen"))
+    }
 }

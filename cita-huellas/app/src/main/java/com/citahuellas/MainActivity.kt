@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
                     if (request.isForMainFrame) controller.diagnostics.onHttpError(response.statusCode)
                 }
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+                    controller.diagnostics.event("navega ${request.url}${if (request.isRedirect) " (redirección)" else ""}")
                     val blocked = request.url.host?.endsWith("administracionelectronica.gob.es") != true
                     if (blocked && request.isForMainFrame) controller.diagnostics.onBlocked(request.url.toString())
                     return blocked
@@ -111,6 +112,11 @@ class MainActivity : ComponentActivity() {
                         },
                         cancel = { controller.cancel() },
                         openWeb = { controller.openOnly() },
+                        copyReport = {
+                            val cm = getSystemService(android.content.ClipboardManager::class.java)
+                            cm.setPrimaryClip(android.content.ClipData.newPlainText("diagnóstico", controller.diagnostics.fullReport()))
+                            android.widget.Toast.makeText(this, "Diagnóstico copiado", android.widget.Toast.LENGTH_SHORT).show()
+                        },
                         step = { p, mine -> val c = contactFor(p, mine, settings); controller.doCurrentStep(p, c.phone, c.email, settings) },
                         fillSms = { controller.fillSms(it) },
                         setSmsCode = { smsCode = it },

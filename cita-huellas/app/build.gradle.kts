@@ -17,8 +17,8 @@ android {
         applicationId = "com.citahuellas"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     // Clave de firma fuera del repositorio: ~/.citahuellas/keystore.properties

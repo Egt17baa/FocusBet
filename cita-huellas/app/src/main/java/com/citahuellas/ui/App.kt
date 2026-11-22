@@ -50,6 +50,7 @@ class AppCallbacks(
     val start: (Profile, Boolean) -> Unit,
     val cancel: () -> Unit,
     val openWeb: () -> Unit,
+    val copyReport: () -> Unit,
     val step: (Profile, Boolean) -> Unit,
     val fillSms: (String) -> Unit,
     val setSmsCode: (String) -> Unit,
@@ -84,7 +85,7 @@ fun App(people: List<Profile>, settings: AppSettings, search: SearchUiState, sms
                 tab == Tab.SEARCH -> SearchScreen(
                     people, settings, search, webView, padding, smsCode, cb.setSmsCode,
                     selectedId, { selectedId = it }, useMine, { useMine = it },
-                    onStart = cb.start, onCancel = cb.cancel, onOpenWeb = cb.openWeb, onStep = cb.step, onFillSms = cb.fillSms,
+                    onStart = cb.start, onCancel = cb.cancel, onOpenWeb = cb.openWeb, onCopyReport = cb.copyReport, onStep = cb.step, onFillSms = cb.fillSms,
                 )
                 else -> SettingsScreen(settings, padding, cb.saveSettings)
             }

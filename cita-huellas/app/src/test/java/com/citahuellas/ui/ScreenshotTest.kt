@@ -27,7 +27,7 @@ class ScreenshotTest {
         Profile("1", "Ana Pérez Quispe", "X1234567L", "PERU", "600111222", "ana@example.com", "Renovación, caduca en marzo"),
         Profile("2", "Luis Martínez", "Y7654321B", "COLOMBIA", "600333444", "luis@example.com"),
     )
-    private val cb = AppCallbacks({}, {}, {}, { _, _ -> }, {}, {}, { _, _ -> }, {}, {})
+    private val cb = AppCallbacks({}, {}, {}, { _, _ -> }, {}, {}, {}, { _, _ -> }, {}, {})
 
     private fun shot(name: String, dark: Boolean = false, content: @androidx.compose.runtime.Composable () -> Unit) {
         compose.setContent { CitaTheme(dark = dark) { content() } }

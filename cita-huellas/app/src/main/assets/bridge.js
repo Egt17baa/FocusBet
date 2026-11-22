@@ -82,6 +82,15 @@
       }
       return 'ok';
     },
+    debug: function () {
+      var html = document.documentElement ? document.documentElement.outerHTML : '';
+      return JSON.stringify({
+        href: location.href, title: document.title, ready: document.readyState,
+        htmlLen: html.length, frames: window.frames.length,
+        scripts: document.scripts.length, cookies: document.cookie.length,
+        head: html.slice(0, 400)
+      });
+    },
     options: function (id) {
       var el = find(id);
       if (!el || !el.options) return '[]';

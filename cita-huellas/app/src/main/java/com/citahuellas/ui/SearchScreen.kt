@@ -73,6 +73,7 @@ fun SearchScreen(
     onStart: (Profile, Boolean) -> Unit,
     onCancel: () -> Unit,
     onOpenWeb: () -> Unit,
+    onCopyReport: () -> Unit,
     onStep: (Profile, Boolean) -> Unit,
     onFillSms: (String) -> Unit,
 ) {
@@ -119,6 +120,7 @@ fun SearchScreen(
         }
 
         StatusPill(state, person?.fullName)
+        if (state.color == StatusColor.STOPPED) TextButton(onCopyReport, modifier = Modifier.fillMaxWidth()) { Text("Copiar diagnóstico") }
 
         if (state.active) Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             FilledTonalButton(onCancel, shape = CircleShape, modifier = Modifier.weight(1f)) { Text("Parar") }
