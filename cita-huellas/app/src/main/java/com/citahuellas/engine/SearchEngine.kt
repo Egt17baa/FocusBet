@@ -62,7 +62,7 @@ class SearchEngine(
                 }
             PageKind.CONTACT, PageKind.SLOT_OR_SMS, PageKind.OFFICE_AVAILABLE -> assist(kind)
             PageKind.CAPTCHA -> stop("Hay un captcha: resuélvelo tú en la web")
-            PageKind.THROTTLED -> stop("La web no responde o ha limitado las peticiones. Espera un rato.")
+            PageKind.THROTTLED -> stop("La web ha cortado la conexión: suele ser un bloqueo temporal por muchos intentos. Espera 30–60 minutos (o prueba con datos móviles).")
             PageKind.ERROR -> stop("La web ha dado un error o la sesión ha caducado")
             PageKind.UNKNOWN -> stop("Pantalla no reconocida: sigue tú a mano")
         }

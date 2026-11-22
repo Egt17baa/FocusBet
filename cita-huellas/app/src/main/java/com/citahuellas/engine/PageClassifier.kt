@@ -18,7 +18,11 @@ object PageClassifier {
     /** Id sintético que el JS añade si ve una imagen de captcha (`img.img-thumbnail`). */
     const val CAPTCHA_IMAGE_ID = "__captchaimg"
 
-    private val throttleTexts = listOf("TOO MANY", "DEMASIADAS", "REQUESTED URL WAS REJECTED", "REQUEST REJECTED", "ACCESS DENIED")
+    private val throttleTexts = listOf(
+        "TOO MANY", "DEMASIADAS", "REQUESTED URL WAS REJECTED", "REQUEST REJECTED", "ACCESS DENIED",
+        // Página de error del propio navegador (conexión cortada, sin respuesta…)
+        "PAGINA WEB NO DISPONIBLE", "NO HA SIDO POSIBLE CARGAR LA PAGINA", "WEBPAGE NOT AVAILABLE", "NET::ERR_",
+    )
     private val errorTexts = listOf("SESION HA CADUCADO", "SE HA PRODUCIDO UN ERROR", "ERROR 404", "ERROR 500", "SERVICE UNAVAILABLE")
     private val noAppointmentTexts = listOf("NO HAY CITAS", "EN ESTE MOMENTO NO HAY")
 

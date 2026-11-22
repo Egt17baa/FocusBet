@@ -66,7 +66,10 @@ class SearchEngineTest {
     }
 
     @Test fun throttledAndErrorStop() {
-        assertEquals(Action.Stop("La web no responde o ha limitado las peticiones. Espera un rato."), engine().next(PageKind.THROTTLED))
+        assertEquals(
+            Action.Stop("La web ha cortado la conexión: suele ser un bloqueo temporal por muchos intentos. Espera 30–60 minutos (o prueba con datos móviles)."),
+            engine().next(PageKind.THROTTLED),
+        )
         assertTrue(engine().next(PageKind.ERROR) is Action.Stop)
     }
 
