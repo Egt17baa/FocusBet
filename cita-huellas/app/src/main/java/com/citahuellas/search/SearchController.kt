@@ -121,7 +121,8 @@ class SearchController(
             is Action.WaitAndRestart -> waitAndRestart(action)
             is Action.Found -> found(action.kind)
             is Action.Stop -> stop(
-                if (kind in setOf(PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
+                if (diagnostics.hasSslError()) "La app no puede verificar el certificado de seguridad de la web. Avisa para actualizar la app.\n${diagnostics.summary()}"
+                else if (kind in setOf(PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
             )
             else -> {
                 val missing = JsBridge.missingField(eval(JsBridge.js(action)!!))

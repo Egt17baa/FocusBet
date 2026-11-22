@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  La web de cita previa no envía su certificado intermedio (RapidSSL TLS RSA CA G1, de DigiCert).
+  Chrome lo descarga solo; el WebView de Android no, y cancela la carga.
+  Se añade ese intermedio oficial (firmado por DigiCert Global Root G2) solo para este dominio,
+  junto a las autoridades del sistema. No se desactiva ninguna validación.
+  SHA-256: 44:22:E9:63:EE:53:CD:58:CC:9F:85:CD:40:BF:5F:FE:C0:09:5F:DF:1A:15:45:35:66:1C:1C:06:BC:AD:C6:9B
+  Caduca: 2027-11-02
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">administracionelectronica.gob.es</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="@raw/rapidssl_tls_rsa_ca_g1" />
+        </trust-anchors>
+    </domain-config>
+</network-security-config>

@@ -59,5 +59,8 @@ class PageDiagnosticsTest {
         assertTrue(s, s.contains("certificado"))
         assertTrue(s, s.contains("no es de confianza"))
         assertTrue(s, s.contains("AC Componentes Informaticos"))
+        assertTrue(d.hasSslError())
+        d.onSslError(3, "https://icp.x/", "CN=*.administracionelectronica.gob.es", "CN=AC Componentes Informaticos")
+        assertEquals("sin duplicados", 1, Regex("certificado SSL").findAll(d.summary()).count())
     }
 }

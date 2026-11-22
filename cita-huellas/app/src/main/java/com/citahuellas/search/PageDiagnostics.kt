@@ -33,9 +33,11 @@ class PageDiagnostics {
             0 -> "aún no es válido"; 1 -> "ha caducado"; 2 -> "no corresponde al dominio"
             3 -> "no es de confianza para Android"; 4 -> "tiene fecha no válida"; else -> "no es válido"
         }
-        problems += "certificado SSL $why (emisor: $issuer; titular: $subject)"
+        val entry = "certificado SSL $why (emisor: $issuer; titular: $subject)"
+        if (entry !in problems) problems += entry
         event("SSL $primary $url emisor=$issuer")
     }
+    @Synchronized fun hasSslError(): Boolean = problems.any { it.startsWith("certificado SSL") }
     @Synchronized fun onText(t: String?) { text = t }
     @Synchronized fun onPageDebug(json: String?) { pageDebug = json }
 
