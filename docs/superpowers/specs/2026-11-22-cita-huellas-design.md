@@ -69,9 +69,20 @@ Ritmo: pausa de 2–4 s entre pantallas (lo que tardaría una persona), y el int
 - **Buscar cita**: elegir persona y teléfono de contacto ("su número" / "mi número"), pulsar Buscar. Muestra la web, el estado ("Intento 3/10 — siguiente en 42 s"), y botón Cancelar. Botón "Rellenar esta pantalla" para uso manual.
 - **Ajustes**: intervalo (30–300 s, defecto 60), intentos máximos (1–20, defecto 10), mi teléfono y mi correo.
 
+## Aspecto visual (pedido por la persona usuaria)
+
+Tema **muy amigable con efecto cristal/desenfocado** (glassmorphism):
+
+- Fondo con degradado suave y manchas de color pastel (lavanda, menta, melocotón) que se ven desenfocadas detrás del contenido.
+- Tarjetas, barra superior y barra inferior de "cristal": blanco translúcido con desenfoque de lo que hay detrás, borde fino claro y esquinas muy redondeadas (24 dp).
+- Tipografía redondeada y grande, iconos simples, botones tipo píldora; estados con color (buscando = azul suave, cita encontrada = verde, parada = ámbar).
+- Modo oscuro: mismas formas, cristal ahumado sobre fondo azul noche.
+- Desenfoque real en Android 12+; en versiones anteriores, el mismo cristal translúcido sin desenfoque.
+- La web oficial se muestra dentro de una tarjeta de cristal grande, con el estado del intento flotando encima.
+
 ## Decisiones técnicas (decisión de Claude salvo lo indicado)
 
-- Kotlin, Jetpack Compose para las pantallas propias, `android.webkit.WebView` para la web.
+- Kotlin, Jetpack Compose (Material 3 personalizado; desenfoque de fondo con la librería Haze) para las pantallas propias, `android.webkit.WebView` para la web.
 - Motor de pasos: detectar la pantalla actual con JS (ids/textos presentes) y ejecutar la acción correspondiente; lógica de detección en Kotlin pura para poder probarla con tests unitarios.
 - Perfiles: JSON cifrado con AES-GCM y clave en Android Keystore.
 - SMS: API SMS User Consent de Google Play services (sin permiso READ_SMS).
