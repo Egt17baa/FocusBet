@@ -1,6 +1,7 @@
 package com.citahuellas.ui
 
 import android.webkit.WebView
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -63,6 +64,21 @@ fun App(people: List<Profile>, settings: AppSettings, search: SearchUiState, sms
     var creating by remember { mutableStateOf(false) }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
     var useMine by rememberSaveable { mutableStateOf(true) }
+
+    // Atrás: cierra la edición; durante una búsqueda no sale de la app (perdería la cita), pide usar "Parar".
+    var backWarned by remember { mutableStateOf(false) }
+    BackHandler(enabled = editing != null || creating || search.active) {
+        when {
+            editing != null || creating -> { editing = null; creating = false }
+            else -> { tab = Tab.SEARCH; backWarned = true }
+        }
+    }
+    if (backWarned) androidx.compose.material3.AlertDialog(
+        onDismissRequest = { backWarned = false },
+        title = { Text("La búsqueda sigue activa") },
+        text = { Text("Para salir, pulsa primero \"Parar\". Si sales ahora podrías perder la cita.") },
+        confirmButton = { androidx.compose.material3.TextButton({ backWarned = false }) { Text("Entendido") } },
+    )
 
     GlassBackground {
         val dir = LocalLayoutDirection.current

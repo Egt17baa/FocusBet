@@ -17,6 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 import kotlin.random.Random
 
@@ -193,7 +194,10 @@ class SearchController(
         else -> state.status
     }
 
-    private suspend fun eval(js: String): String? = suspendCancellableCoroutine { cont ->
-        web.evaluateJavascript(js) { if (cont.isActive) cont.resume(it) }
-    }
+    /** Si la página no responde en 15 s se trata como vacía (la búsqueda se para con diagnóstico, no se cuelga). */
+    private suspend fun eval(js: String): String? = withTimeoutOrNull(15_000) {
+        suspendCancellableCoroutine { cont ->
+            web.evaluateJavascript(js) { if (cont.isActive) cont.resume(it) }
+        }
+    } ?: run { diagnostics.event("sin respuesta de la página (15 s)"); null }
 }
