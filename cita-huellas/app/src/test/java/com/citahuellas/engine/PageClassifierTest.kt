@@ -33,5 +33,9 @@ class PageClassifierTest {
         PageKind.NETWORK_ERROR,
         k(snap(text = "Página web no disponible No ha sido posible cargar la página web https://icp... net::ERR_EMPTY_RESPONSE")),
     )
+    @Test fun citaFieldsWinOverNoAppointmentsText() {
+        assertEquals(PageKind.OFFICE_AVAILABLE, k(snap("idSede", "btnSiguiente", text = "En otras oficinas no hay citas")))
+        assertEquals(PageKind.SLOT_OR_SMS, k(snap("rdbCita", text = "No hay citas por la tarde")))
+    }
     @Test fun sessionExpiredIsError() = assertEquals(PageKind.ERROR, k(snap("btnAceptar", text = "Su sesión ha caducado")))
 }

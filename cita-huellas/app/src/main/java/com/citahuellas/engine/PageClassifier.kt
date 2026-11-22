@@ -36,13 +36,14 @@ object PageClassifier {
 
         return when {
             has("reCAPTCHA_site_key", "captcha", CAPTCHA_IMAGE_ID) -> PageKind.CAPTCHA
+            // Campos de una cita real: mandan sobre cualquier texto (p. ej. "no hay citas en otras oficinas").
+            has("txtCodigoVerificacion", "rdbCita", "CitaMAP_HORAS", "btnConfirmar") -> PageKind.SLOT_OR_SMS
+            has("txtTelefonoCitado") -> PageKind.CONTACT
+            has("idSede") -> PageKind.OFFICE_AVAILABLE
             says(browserErrorTexts) -> PageKind.NETWORK_ERROR
             text.trim().length < 20 || says(throttleTexts) -> PageKind.THROTTLED
             says(errorTexts) -> PageKind.ERROR
             says(noAppointmentTexts) -> PageKind.NO_APPOINTMENTS
-            has("txtCodigoVerificacion", "rdbCita", "CitaMAP_HORAS", "btnConfirmar") -> PageKind.SLOT_OR_SMS
-            has("txtTelefonoCitado") -> PageKind.CONTACT
-            has("idSede") -> PageKind.OFFICE_AVAILABLE
             has("txtIdCitado") -> PageKind.PERSONAL_DATA
             has("btnEnviar") && (has("btnConsultar") || "SOLICITAR CITA" in text) -> PageKind.REQUEST
             has("btnEntrar") || "SIN CL@VE" in text -> PageKind.INSTRUCTIONS

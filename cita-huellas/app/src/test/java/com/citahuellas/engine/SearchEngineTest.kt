@@ -104,4 +104,32 @@ class SearchEngineTest {
         assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
         assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
     }
+
+    @Test fun unknownPageAfterSendingDataIsPossibleCita() {
+        val e = engine()
+        e.next(PageKind.PERSONAL_DATA)
+        assertEquals(Action.Found(PageKind.UNKNOWN), e.next(PageKind.UNKNOWN))
+        assertTrue(e.found)
+        assertFalse(e.finished)
+    }
+
+    @Test fun captchaAfterSendingDataAlertsInsteadOfStopping() {
+        val e = engine()
+        e.next(PageKind.REQUEST)
+        assertEquals(Action.Found(PageKind.CAPTCHA), e.next(PageKind.CAPTCHA))
+    }
+
+    @Test fun unknownBeforeSendingDataStillStops() {
+        val e = engine()
+        e.next(PageKind.PROVINCE)
+        assertTrue(e.next(PageKind.UNKNOWN) is Action.Stop)
+    }
+
+    @Test fun sentFlagResetsOnRestart() {
+        val e = engine()
+        e.next(PageKind.PERSONAL_DATA)
+        assertTrue(e.next(PageKind.NO_APPOINTMENTS) is Action.WaitAndRestart)
+        e.next(PageKind.PROVINCE)
+        assertTrue(e.next(PageKind.UNKNOWN) is Action.Stop)
+    }
 }

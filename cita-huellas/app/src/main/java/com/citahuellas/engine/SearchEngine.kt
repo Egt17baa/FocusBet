@@ -42,13 +42,18 @@ class SearchEngine(
     private var lastKind: PageKind? = null
     private var sameKindCount = 0
     private var networkRetries = 0
+    /** Ya se han enviado los datos: una pantalla rara a partir de aquí puede ser una cita. */
+    private var sentData = false
 
     fun next(kind: PageKind): Action {
         if (finished) return Action.Stop(stopReason)
         if (found || kind == PageKind.OFFICE_AVAILABLE) return assist(kind)
 
+        if (sentData && (kind == PageKind.UNKNOWN || kind == PageKind.CAPTCHA)) return assist(kind)
+
         if (kind == PageKind.NETWORK_ERROR) {
             lastKind = null
+            sentData = false
             if (networkRetries >= 2) return stop("La web no responde tras varios reintentos. Espera un rato (o prueba con datos móviles).")
             networkRetries++
             return Action.RetryAfterError(random.nextLong(5_000, 10_001), networkRetries)
@@ -63,12 +68,13 @@ class SearchEngine(
             PageKind.PROVINCE -> Action.SelectProvince
             PageKind.OFFICE_PROCEDURE -> Action.SelectProcedure
             PageKind.INSTRUCTIONS -> Action.EnterWithoutClave
-            PageKind.PERSONAL_DATA -> Action.FillPersonal(profile)
-            PageKind.REQUEST -> Action.Request
+            PageKind.PERSONAL_DATA -> { sentData = true; Action.FillPersonal(profile) }
+            PageKind.REQUEST -> { sentData = true; Action.Request }
             PageKind.NO_APPOINTMENTS ->
                 if (attempt < settings.maxAttempts) {
                     attempt++
                     lastKind = null
+                    sentData = false
                     Action.WaitAndRestart(settings.intervalSec * 1000L, attempt)
                 } else {
                     stop("Sin citas tras ${settings.maxAttempts} intentos")

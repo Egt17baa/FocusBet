@@ -187,7 +187,7 @@ class SearchController(
     private fun found(kind: PageKind) {
         if (!notifiedFound) {
             notifiedFound = true
-            notifier.found(profileName)
+            notifier.found(profileName, sure = kind != PageKind.UNKNOWN && kind != PageKind.CAPTCHA)
         }
         val sms = kind == PageKind.SLOT_OR_SMS
         if (sms && listenSms && !state.smsStep) onSmsStep()
@@ -196,6 +196,8 @@ class SearchController(
             secondsLeft = null,
             smsStep = sms,
             status = when (kind) {
+                PageKind.UNKNOWN -> "¡Pantalla nueva tras pedir cita! Puede ser una cita: revísala tú YA."
+                PageKind.CAPTCHA -> "¡Captcha tras pedir cita! Resuélvelo tú YA y sigue."
                 PageKind.CONTACT -> "Teléfono y correo puestos. Revisa y pulsa Siguiente."
                 PageKind.SLOT_OR_SMS -> "Elige el hueco y pon el código SMS. Confirma tú."
                 else -> "¡Hay cita! Elige la oficina y pulsa Siguiente."

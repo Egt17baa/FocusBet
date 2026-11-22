@@ -34,7 +34,9 @@ class Notifier(private val context: Context) {
         )
     }
 
-    fun found(name: String) = post(1, FOUND, "¡Hay cita para $name!", "Abre la app, elige oficina y hueco, y confirma tú.")
+    fun found(name: String, sure: Boolean = true) =
+        if (sure) post(1, FOUND, "¡Hay cita para $name!", "Abre la app, elige oficina y hueco, y confirma tú. Tienes pocos minutos.")
+        else post(1, FOUND, "¡Puede que haya cita para $name!", "Ha salido una pantalla nueva tras pedir cita. Ábrela YA y revísala.")
 
     fun stopped(reason: String) = post(2, STATUS, "Búsqueda parada", reason)
 
