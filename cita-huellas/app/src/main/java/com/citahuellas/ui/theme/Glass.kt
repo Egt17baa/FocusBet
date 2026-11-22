@@ -3,7 +3,6 @@ package com.citahuellas.ui.theme
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,7 +31,7 @@ val GlassShape = RoundedCornerShape(24.dp)
 /** Fondo con degradado y manchas pastel; todo lo que hay encima puede desenfocarlo con [glass]. */
 @Composable
 fun GlassBackground(content: @Composable BoxScope.() -> Unit) {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDark.current
     val state = remember { HazeState() }
     Box(Modifier.fillMaxSize()) {
         Canvas(
@@ -59,7 +58,7 @@ fun GlassBackground(content: @Composable BoxScope.() -> Unit) {
 /** Cristal: blanco translúcido (ahumado en oscuro), desenfoque del fondo en Android 12+ y borde fino. */
 @Composable
 fun Modifier.glass(shape: Shape = GlassShape, strong: Boolean = false): Modifier {
-    val dark = isSystemInDarkTheme()
+    val dark = LocalDark.current
     val tint = when {
         dark -> Color(0xFF1A2147).copy(alpha = if (strong) 0.70f else 0.35f)
         else -> Color.White.copy(alpha = if (strong) 0.80f else 0.55f)

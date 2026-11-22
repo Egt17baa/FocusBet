@@ -55,8 +55,8 @@ class AppCallbacks(
 )
 
 @Composable
-fun App(people: List<Profile>, settings: AppSettings, search: SearchUiState, smsCode: String, webView: WebView, cb: AppCallbacks) {
-    var tab by remember { mutableStateOf(if (people.isEmpty()) Tab.PEOPLE else Tab.SEARCH) }
+fun App(people: List<Profile>, settings: AppSettings, search: SearchUiState, smsCode: String, webView: WebView, cb: AppCallbacks, startTab: Tab? = null) {
+    var tab by remember { mutableStateOf(startTab ?: if (people.isEmpty()) Tab.PEOPLE else Tab.SEARCH) }
     var editing by remember { mutableStateOf<Profile?>(null) }
     var creating by remember { mutableStateOf(false) }
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
