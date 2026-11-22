@@ -3,6 +3,7 @@ package com.citahuellas.engine
 import com.citahuellas.data.AppSettings
 import com.citahuellas.data.Profile
 import com.citahuellas.data.clamped
+import kotlin.random.Random
 
 /** Qué hacer en la pantalla actual. Ninguna acción confirma la cita: eso lo hace siempre la persona. */
 sealed interface Action {
@@ -12,6 +13,8 @@ sealed interface Action {
     data class FillPersonal(val profile: Profile) : Action
     data object Request : Action
     data class WaitAndRestart(val delayMs: Long, val attempt: Int) : Action
+    /** Fallo de carga del navegador: esperar y volver a la portada, sin gastar intento. */
+    data class RetryAfterError(val delayMs: Long, val retry: Int) : Action
     data class FillContact(val phone: String, val email: String) : Action
     data class Found(val kind: PageKind) : Action
     data class Stop(val reason: String) : Action
@@ -22,6 +25,7 @@ class SearchEngine(
     private val contactPhone: String,
     private val contactEmail: String,
     settings: AppSettings,
+    private val random: Random = Random.Default,
 ) {
     private val settings = settings.clamped()
 
@@ -37,10 +41,19 @@ class SearchEngine(
     private var contactFilled = false
     private var lastKind: PageKind? = null
     private var sameKindCount = 0
+    private var networkRetries = 0
 
     fun next(kind: PageKind): Action {
         if (finished) return Action.Stop(stopReason)
         if (found || kind == PageKind.OFFICE_AVAILABLE) return assist(kind)
+
+        if (kind == PageKind.NETWORK_ERROR) {
+            lastKind = null
+            if (networkRetries >= 2) return stop("La web no responde tras varios reintentos. Espera un rato (o prueba con datos móviles).")
+            networkRetries++
+            return Action.RetryAfterError(random.nextLong(5_000, 10_001), networkRetries)
+        }
+        networkRetries = 0
 
         sameKindCount = if (kind == lastKind) sameKindCount + 1 else 1
         lastKind = kind
@@ -62,6 +75,7 @@ class SearchEngine(
                 }
             PageKind.CONTACT, PageKind.SLOT_OR_SMS, PageKind.OFFICE_AVAILABLE -> assist(kind)
             PageKind.CAPTCHA -> stop("Hay un captcha: resuélvelo tú en la web")
+            PageKind.NETWORK_ERROR -> error("tratado arriba")
             PageKind.THROTTLED -> stop("La web ha cortado la conexión: suele ser un bloqueo temporal por muchos intentos. Espera 30–60 minutos (o prueba con datos móviles).")
             PageKind.ERROR -> stop("La web ha dado un error o la sesión ha caducado")
             PageKind.UNKNOWN -> stop("Pantalla no reconocida: sigue tú a mano")

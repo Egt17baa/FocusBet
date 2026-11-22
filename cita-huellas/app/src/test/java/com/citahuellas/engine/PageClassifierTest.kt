@@ -29,8 +29,8 @@ class PageClassifierTest {
         assertEquals(PageKind.THROTTLED, k(snap(text = "Too Many Requests")))
         assertEquals(PageKind.THROTTLED, k(snap(text = "The requested URL was rejected. Please consult with your administrator.")))
     }
-    @Test fun browserErrorPageIsThrottled() = assertEquals(
-        PageKind.THROTTLED,
+    @Test fun browserErrorPageIsNetworkError() = assertEquals(
+        PageKind.NETWORK_ERROR,
         k(snap(text = "Página web no disponible No ha sido posible cargar la página web https://icp... net::ERR_EMPTY_RESPONSE")),
     )
     @Test fun sessionExpiredIsError() = assertEquals(PageKind.ERROR, k(snap("btnAceptar", text = "Su sesión ha caducado")))

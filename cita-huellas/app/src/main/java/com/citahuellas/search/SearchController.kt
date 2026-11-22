@@ -126,10 +126,11 @@ class SearchController(
         if (action is Action.Stop) diagnostics.onStop(action.reason, kind.name)
         when (action) {
             is Action.WaitAndRestart -> waitAndRestart(action)
+            is Action.RetryAfterError -> retryAfterError(action)
             is Action.Found -> found(action.kind)
             is Action.Stop -> stop(
                 if (diagnostics.hasSslError()) "La app no puede verificar el certificado de seguridad de la web. Avisa para actualizar la app.\n${diagnostics.summary()}"
-                else if (kind in setOf(PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
+                else if (kind in setOf(PageKind.NETWORK_ERROR, PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
             )
             else -> {
                 state = state.copy(status = label(action), secondsLeft = null)
@@ -163,6 +164,23 @@ class SearchController(
             waiting = false
         }
         state = state.copy(status = "Intento ${a.attempt} de ${state.max}…", secondsLeft = null)
+        web.loadUrl(ENTRY_URL)
+    }
+
+    private suspend fun retryAfterError(a: Action.RetryAfterError) {
+        diagnostics.event("reintento por fallo de carga ${a.retry}/2")
+        waiting = true
+        try {
+            var left = (a.delayMs / 1000).toInt()
+            while (left > 0) {
+                state = state.copy(status = "La web no respondió. Vuelvo a cargar (${a.retry}/2)", secondsLeft = left)
+                delay(1_000)
+                left--
+            }
+        } finally {
+            waiting = false
+        }
+        state = state.copy(status = "Cargando de nuevo…", secondsLeft = null)
         web.loadUrl(ENTRY_URL)
     }
 

@@ -84,4 +84,24 @@ class SearchEngineTest {
         e.next(PageKind.CAPTCHA)
         assertTrue(e.next(PageKind.PROVINCE) is Action.Stop)
     }
+
+    @Test fun networkErrorRetriesTwiceThenStops() {
+        val e = engine()
+        val r1 = e.next(PageKind.NETWORK_ERROR)
+        assertTrue(r1 is Action.RetryAfterError && r1.delayMs in 5_000..10_000)
+        assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
+        assertEquals(
+            Action.Stop("La web no responde tras varios reintentos. Espera un rato (o prueba con datos móviles)."),
+            e.next(PageKind.NETWORK_ERROR),
+        )
+        assertEquals("no gasta intentos", 1, e.attempt)
+    }
+
+    @Test fun networkRetryCounterResetsAfterProgress() {
+        val e = engine()
+        e.next(PageKind.NETWORK_ERROR); e.next(PageKind.NETWORK_ERROR)
+        e.next(PageKind.PROVINCE)
+        assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
+        assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
+    }
 }

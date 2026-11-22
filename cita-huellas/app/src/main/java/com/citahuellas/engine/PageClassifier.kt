@@ -7,7 +7,7 @@ data class PageSnapshot(val url: String, val ids: Set<String>, val text: String)
 
 enum class PageKind {
     PROVINCE, OFFICE_PROCEDURE, INSTRUCTIONS, PERSONAL_DATA, REQUEST, NO_APPOINTMENTS,
-    OFFICE_AVAILABLE, CONTACT, SLOT_OR_SMS, CAPTCHA, THROTTLED, ERROR, UNKNOWN,
+    OFFICE_AVAILABLE, CONTACT, SLOT_OR_SMS, CAPTCHA, NETWORK_ERROR, THROTTLED, ERROR, UNKNOWN,
 }
 
 /** Mayúsculas y sin tildes, para comparar textos de la web. */
@@ -20,7 +20,9 @@ object PageClassifier {
 
     private val throttleTexts = listOf(
         "TOO MANY", "DEMASIADAS", "REQUESTED URL WAS REJECTED", "REQUEST REJECTED", "ACCESS DENIED",
-        // Página de error del propio navegador (conexión cortada, sin respuesta…)
+    )
+    /** Página de error del propio navegador (conexión cortada, sin respuesta…): se arregla recargando. */
+    private val browserErrorTexts = listOf(
         "PAGINA WEB NO DISPONIBLE", "NO HA SIDO POSIBLE CARGAR LA PAGINA", "WEBPAGE NOT AVAILABLE", "NET::ERR_",
     )
     private val errorTexts = listOf("SESION HA CADUCADO", "SE HA PRODUCIDO UN ERROR", "ERROR 404", "ERROR 500", "SERVICE UNAVAILABLE")
@@ -34,6 +36,7 @@ object PageClassifier {
 
         return when {
             has("reCAPTCHA_site_key", "captcha", CAPTCHA_IMAGE_ID) -> PageKind.CAPTCHA
+            says(browserErrorTexts) -> PageKind.NETWORK_ERROR
             text.trim().length < 20 || says(throttleTexts) -> PageKind.THROTTLED
             says(errorTexts) -> PageKind.ERROR
             says(noAppointmentTexts) -> PageKind.NO_APPOINTMENTS
