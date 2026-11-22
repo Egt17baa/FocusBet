@@ -87,7 +87,8 @@
       return JSON.stringify({
         href: location.href, title: document.title, ready: document.readyState,
         htmlLen: html.length, frames: window.frames.length,
-        scripts: document.scripts.length, cookies: document.cookie.length,
+        scripts: document.scripts.length,
+        cookies: (function () { try { return document.cookie.length; } catch (e) { return 'bloqueadas'; } })(),
         head: html.slice(0, 400)
       });
     },

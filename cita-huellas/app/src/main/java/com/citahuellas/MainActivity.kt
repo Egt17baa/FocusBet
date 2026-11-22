@@ -67,6 +67,14 @@ class MainActivity : ComponentActivity() {
                 override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) =
                     controller.diagnostics.onLoad(url)
                 override fun onPageFinished(view: WebView, url: String) = controller.onPageFinished()
+                override fun onReceivedSslError(view: WebView, handler: android.webkit.SslErrorHandler, error: android.net.http.SslError) {
+                    // Solo se registra para el diagnóstico; la carga se cancela como hace Android por defecto.
+                    controller.diagnostics.onSslError(
+                        error.primaryError, error.url,
+                        error.certificate?.issuedTo?.dName ?: "?", error.certificate?.issuedBy?.dName ?: "?",
+                    )
+                    handler.cancel()
+                }
                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                     if (request.isForMainFrame) controller.diagnostics.onError(error.errorCode, error.description.toString())
                 }

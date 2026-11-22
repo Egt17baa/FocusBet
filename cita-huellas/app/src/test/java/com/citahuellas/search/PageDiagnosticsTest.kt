@@ -51,4 +51,13 @@ class PageDiagnosticsTest {
         assertTrue(d.fullReport().contains("htmlLen"))
         assertTrue(d.summary().contains("htmlLen"))
     }
+
+    @Test fun sslErrorIsExplained() {
+        val d = PageDiagnostics()
+        d.onSslError(3, "https://icp.x/", "CN=*.administracionelectronica.gob.es", "CN=AC Componentes Informaticos")
+        val s = d.summary()
+        assertTrue(s, s.contains("certificado"))
+        assertTrue(s, s.contains("no es de confianza"))
+        assertTrue(s, s.contains("AC Componentes Informaticos"))
+    }
 }

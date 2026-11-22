@@ -83,6 +83,13 @@ await test('optionalSelectNeverFails', async () => {
   assert.equal(await page.evaluate('CH.run([["trySelectByText","sede","CUALQUIER"]])'), 'ok');
 });
 
+await test('debugWorksOnOpaqueDocument', async () => {
+  await page.goto('about:blank');
+  await page.evaluate(bridge);
+  const d = JSON.parse(await page.evaluate('CH.debug()'));
+  assert.equal(d.href, 'about:blank');
+});
+
 await browser.close();
 console.log(failed ? `${failed} FAILED` : 'ALL PASSED');
 process.exit(failed ? 1 : 0);

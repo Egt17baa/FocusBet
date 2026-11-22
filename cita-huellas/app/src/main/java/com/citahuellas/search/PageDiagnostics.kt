@@ -28,6 +28,14 @@ class PageDiagnostics {
     @Synchronized fun onError(code: Int, description: String) { problems += "error $code $description"; event("error $code $description") }
     @Synchronized fun onHttpError(status: Int) { problems += "HTTP $status"; event("HTTP $status") }
     @Synchronized fun onBlocked(url: String) { problems += "redirección bloqueada a $url"; event("bloqueada $url") }
+    @Synchronized fun onSslError(primary: Int, url: String, subject: String, issuer: String) {
+        val why = when (primary) {
+            0 -> "aún no es válido"; 1 -> "ha caducado"; 2 -> "no corresponde al dominio"
+            3 -> "no es de confianza para Android"; 4 -> "tiene fecha no válida"; else -> "no es válido"
+        }
+        problems += "certificado SSL $why (emisor: $issuer; titular: $subject)"
+        event("SSL $primary $url emisor=$issuer")
+    }
     @Synchronized fun onText(t: String?) { text = t }
     @Synchronized fun onPageDebug(json: String?) { pageDebug = json }
 
