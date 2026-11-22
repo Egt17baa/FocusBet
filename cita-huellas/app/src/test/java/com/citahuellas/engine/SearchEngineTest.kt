@@ -72,8 +72,7 @@ class SearchEngineTest {
 
     @Test fun stuckPageStops() {
         val e = engine()
-        e.next(PageKind.PERSONAL_DATA)
-        e.next(PageKind.PERSONAL_DATA)
+        repeat(3) { assertEquals(Action.FillPersonal(ana), e.next(PageKind.PERSONAL_DATA)) }
         assertEquals(Action.Stop("La página no avanza"), e.next(PageKind.PERSONAL_DATA))
     }
 

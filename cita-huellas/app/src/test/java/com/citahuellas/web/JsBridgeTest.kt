@@ -42,6 +42,15 @@ class JsBridgeTest {
         val js = JsBridge.js(Action.SelectProcedure)!!
         assertTrue(js.contains("[\"selectByText\",\"tramiteGrupo[1]\",\"TOMA DE HUELLAS\"]"))
         assertFalse(js.contains("tramiteGrupo[0]"))
+        assertFalse("no pulsa en el mismo paso: la web rellena el subtrámite", js.contains("\"click\""))
+    }
+
+    @Test fun procedureFollowUpChecksSubtramiteThenAccepts() {
+        assertEquals(
+            "CH.run([[\"needChoice\",\"subtramite\"],[\"click\",\"btnAceptar\"]])",
+            JsBridge.followUp(Action.SelectProcedure),
+        )
+        assertNull(JsBridge.followUp(Action.SelectProvince))
     }
 
     @Test fun smsCodeIsFilledNotConfirmed() {

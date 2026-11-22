@@ -15,7 +15,6 @@ object JsBridge {
         Action.SelectProcedure -> run(
             step("trySelectByText", "sede", "CUALQUIER OFICINA"),
             step("selectByText", "tramiteGrupo[1]", "TOMA DE HUELLAS"),
-            step("click", "btnAceptar"),
         )
         Action.EnterWithoutClave -> run(step("clickAny", "btnEntrar", "SIN CL@VE"))
         is Action.FillPersonal -> run(
@@ -32,6 +31,12 @@ object JsBridge {
             step("setValue", "emailDOS", action.email.trim()),
         )
         is Action.WaitAndRestart, is Action.Found, is Action.Stop -> null
+    }
+
+    /** Segunda parte de una acción, tras dejar que la web reaccione (p. ej. rellenar el subtrámite). */
+    fun followUp(action: Action): String? = when (action) {
+        Action.SelectProcedure -> run(step("needChoice", "subtramite"), step("click", "btnAceptar"))
+        else -> null
     }
 
     fun fillSmsCode(code: String): String = run(step("setValue", "txtCodigoVerificacion", code))
@@ -54,6 +59,7 @@ object JsBridge {
         "txtIdCitado" -> "el campo NIE"
         "txtDesCitado" -> "el campo nombre"
         "btnEntrar" -> "el botón Presentación sin Cl@ve"
+        "subtramite" -> "qué subtrámite elegir (hay varios)"
         else -> id
     }
 }

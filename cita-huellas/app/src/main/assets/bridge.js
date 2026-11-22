@@ -51,6 +51,7 @@
       var hit = opts.find(function (o) { return norm(o.text) === want; }) ||
                 opts.find(function (o) { return norm(o.text).indexOf(want) !== -1; });
       if (!hit) return false;
+      if (el.value === hit.value) return true; // ya elegido: no disparar change (la web recarga la página)
       el.value = hit.value;
       fire(el, 'change');
       return true;
@@ -68,6 +69,19 @@
       if (!el) return false;
       el.click();
       return true;
+    },
+    // Desplegable que la web rellena sola (p. ej. subtrámite): si tiene varias opciones reales y
+    // ninguna elegida, falla para que la persona elija; si solo hay una, la elige.
+    needChoice: function (id) {
+      var el = find(id);
+      if (!el || !el.options) return true;
+      var real = Array.prototype.filter.call(el.options, function (o) {
+        return o.value !== '' && o.value !== '-1' && o.value !== '0';
+      });
+      var chosen = el.selectedIndex >= 0 && real.indexOf(el.options[el.selectedIndex]) !== -1;
+      if (chosen || real.length === 0) return true;
+      if (real.length === 1) { el.value = real[0].value; fire(el, 'change'); return true; }
+      return false;
     },
     trySelectByText: function (id, needle) {
       ops.selectByText(id, needle);

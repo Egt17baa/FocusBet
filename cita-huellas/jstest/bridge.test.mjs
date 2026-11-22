@@ -106,6 +106,25 @@ await test('controlsListsFormElements', async () => {
   assert.match(c, /input#btnEnviar="Aceptar"/);
 });
 
+await test('selectByTextAlreadySelectedFiresNoChange', async () => {
+  await load('tramite.html');
+  await page.evaluate("window.ch=0; document.getElementById('sede').addEventListener('change',()=>window.ch++)");
+  assert.equal(await page.evaluate('CH.run([["trySelectByText","sede","CUALQUIER OFICINA"]])'), 'ok');
+  assert.equal(await page.evaluate('window.ch'), 0);
+});
+
+await test('needChoiceOnlyFailsWhenRealOptionsAndNoneChosen', async () => {
+  await page.setContent('<select id="subtramite"></select>');
+  await page.evaluate(bridge);
+  assert.equal(await page.evaluate('CH.run([["needChoice","subtramite"]])'), 'ok');
+  await page.setContent('<select id="subtramite"><option value="">Seleccione</option><option value="1">A</option><option value="2">B</option></select>');
+  await page.evaluate(bridge);
+  assert.equal(await page.evaluate('CH.run([["needChoice","subtramite"]])'), 'missing:subtramite');
+  await page.evaluate("document.getElementById('subtramite').value='2'");
+  assert.equal(await page.evaluate('CH.run([["needChoice","subtramite"]])'), 'ok');
+  assert.equal(await page.evaluate('CH.run([["needChoice","noExiste"]])'), 'ok');
+});
+
 await browser.close();
 console.log(failed ? `${failed} FAILED` : 'ALL PASSED');
 process.exit(failed ? 1 : 0);

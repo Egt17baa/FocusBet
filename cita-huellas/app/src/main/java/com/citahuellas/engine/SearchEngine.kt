@@ -44,7 +44,7 @@ class SearchEngine(
 
         sameKindCount = if (kind == lastKind) sameKindCount + 1 else 1
         lastKind = kind
-        if (sameKindCount >= 3) return stop("La página no avanza")
+        if (sameKindCount >= 4) return stop("La página no avanza")
 
         return when (kind) {
             PageKind.PROVINCE -> Action.SelectProvince

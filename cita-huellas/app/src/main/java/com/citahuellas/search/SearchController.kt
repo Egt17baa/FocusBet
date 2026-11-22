@@ -20,6 +20,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 import kotlin.random.Random
+import kotlinx.serialization.builtins.serializer
 
 enum class StatusColor { IDLE, SEARCHING, FOUND, STOPPED }
 
@@ -131,14 +132,19 @@ class SearchController(
                 else if (kind in setOf(PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
             )
             else -> {
-                val missing = JsBridge.missingField(eval(JsBridge.js(action)!!))
+                state = state.copy(status = label(action), secondsLeft = null)
+                var missing = JsBridge.missingField(eval(JsBridge.js(action)!!))
+                val followUp = JsBridge.followUp(action)
+                if (missing == null && followUp != null) {
+                    delay(Random.nextLong(1_500, 2_501))
+                    missing = JsBridge.missingField(eval(followUp))
+                }
                 if (missing != null) {
                     diagnostics.onControls(runCatching { kotlinx.serialization.json.Json.decodeFromString<String>(eval(JsBridge.CONTROLS) ?: "null") }.getOrNull())
+                    if (missing != "?") diagnostics.event("opciones de $missing: " + (eval("CH.options(" + kotlinx.serialization.json.Json.encodeToString(String.serializer(), missing) + ")") ?: "?"))
                     diagnostics.onStop("falta $missing", kind.name)
                     engine = null
                     stop("No encuentro ${JsBridge.fieldLabel(missing)} en la web. Sigue tú a mano.")
-                } else {
-                    state = state.copy(status = label(action), secondsLeft = null)
                 }
             }
         }
