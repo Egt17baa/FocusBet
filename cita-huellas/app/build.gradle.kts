@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -19,9 +21,23 @@ android {
         versionName = "1.0"
     }
 
+    // Clave de firma fuera del repositorio: ~/.citahuellas/keystore.properties
+    val keyProps = File(System.getProperty("user.home"), ".citahuellas/keystore.properties")
+        .takeIf { it.exists() }?.let { f -> Properties().apply { f.inputStream().use(::load) } }
+
+    signingConfigs {
+        if (keyProps != null) create("release") {
+            storeFile = file(keyProps.getProperty("storeFile"))
+            storePassword = keyProps.getProperty("storePassword")
+            keyAlias = keyProps.getProperty("keyAlias")
+            keyPassword = keyProps.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
     compileOptions {
@@ -48,6 +64,7 @@ dependencies {
     implementation("dev.chrisbanes.haze:haze:1.0.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("com.google.android.gms:play-services-auth-api-phone:18.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.5") // play-services trae fragment 1.0; ActivityResult necesita >= 1.3
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.14.1")
