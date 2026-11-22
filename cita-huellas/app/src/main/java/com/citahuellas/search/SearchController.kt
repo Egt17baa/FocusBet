@@ -52,6 +52,8 @@ class SearchController(
     private var job: Job? = null
     private var pageSeq = 0
     private var notifiedFound = false
+    /** Durante la cuenta atrás se ignoran cargas tardías de la página "no hay citas". */
+    private var waiting = false
 
     fun start(profile: Profile, phone: String, email: String, useMyPhone: Boolean, settings: AppSettings) {
         job?.cancel()
@@ -65,6 +67,7 @@ class SearchController(
 
     fun cancel() {
         job?.cancel()
+        waiting = false
         engine = null
         state = SearchUiState("Búsqueda cancelada", color = StatusColor.IDLE)
     }
@@ -72,7 +75,7 @@ class SearchController(
     /** Lo llama el WebViewClient. Si llegan varias cargas seguidas, solo cuenta la última. */
     fun onPageFinished() {
         val e = engine ?: return
-        if (e.finished) return
+        if (e.finished || waiting) return
         val seq = ++pageSeq
         job?.cancel()
         job = scope.launch {
@@ -120,11 +123,16 @@ class SearchController(
     }
 
     private suspend fun waitAndRestart(a: Action.WaitAndRestart) {
-        var left = (a.delayMs / 1000).toInt()
-        while (left > 0) {
-            state = state.copy(status = "No hay citas. Reintento ${a.attempt} de ${state.max}", attempt = a.attempt, secondsLeft = left)
-            delay(1_000)
-            left--
+        waiting = true
+        try {
+            var left = (a.delayMs / 1000).toInt()
+            while (left > 0) {
+                state = state.copy(status = "No hay citas. Reintento ${a.attempt} de ${state.max}", attempt = a.attempt, secondsLeft = left)
+                delay(1_000)
+                left--
+            }
+        } finally {
+            waiting = false
         }
         state = state.copy(status = "Intento ${a.attempt} de ${state.max}…", secondsLeft = null)
         web.loadUrl(ENTRY_URL)
