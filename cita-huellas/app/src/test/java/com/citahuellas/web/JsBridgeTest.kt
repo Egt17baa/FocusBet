@@ -50,6 +50,13 @@ class JsBridgeTest {
         assertFalse(js.contains("btnConfirmar"))
     }
 
+    @Test fun enterWithoutClaveFallsBackToButtonText() {
+        assertEquals(
+            "CH.run([[\"clickAny\",\"btnEntrar\",\"SIN CL@VE\"]])",
+            JsBridge.js(Action.EnterWithoutClave),
+        )
+    }
+
     @Test fun parseResult() {
         assertNull(JsBridge.missingField("\"ok\""))
         assertEquals("txtPaisNac", JsBridge.missingField("\"missing:txtPaisNac\""))

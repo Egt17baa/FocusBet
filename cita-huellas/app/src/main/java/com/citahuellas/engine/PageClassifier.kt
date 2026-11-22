@@ -38,7 +38,7 @@ object PageClassifier {
             has("idSede") -> PageKind.OFFICE_AVAILABLE
             has("txtIdCitado") -> PageKind.PERSONAL_DATA
             has("btnEnviar") && (has("btnConsultar") || "SOLICITAR CITA" in text) -> PageKind.REQUEST
-            has("btnEntrar") -> PageKind.INSTRUCTIONS
+            has("btnEntrar") || "SIN CL@VE" in text -> PageKind.INSTRUCTIONS
             has("tramiteGrupo[1]", "sede") -> PageKind.OFFICE_PROCEDURE
             has("form") && has("btnAceptar") -> PageKind.PROVINCE
             else -> PageKind.UNKNOWN

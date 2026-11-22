@@ -117,7 +117,12 @@ class SearchController(
 
     private suspend fun step(e: SearchEngine) {
         val kind = currentKind() ?: PageKind.THROTTLED
-        when (val action = e.next(kind)) {
+        val action = e.next(kind)
+        if (action is Action.Stop || action is Action.Found) {
+            diagnostics.onControls(runCatching { kotlinx.serialization.json.Json.decodeFromString<String>(eval(JsBridge.CONTROLS) ?: "null") }.getOrNull())
+        }
+        if (action is Action.Stop) diagnostics.onStop(action.reason, kind.name)
+        when (action) {
             is Action.WaitAndRestart -> waitAndRestart(action)
             is Action.Found -> found(action.kind)
             is Action.Stop -> stop(
@@ -127,6 +132,8 @@ class SearchController(
             else -> {
                 val missing = JsBridge.missingField(eval(JsBridge.js(action)!!))
                 if (missing != null) {
+                    diagnostics.onControls(runCatching { kotlinx.serialization.json.Json.decodeFromString<String>(eval(JsBridge.CONTROLS) ?: "null") }.getOrNull())
+                    diagnostics.onStop("falta $missing", kind.name)
                     engine = null
                     stop("No encuentro ${JsBridge.fieldLabel(missing)} en la web. Sigue tú a mano.")
                 } else {

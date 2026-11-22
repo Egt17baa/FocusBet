@@ -90,6 +90,22 @@ await test('debugWorksOnOpaqueDocument', async () => {
   assert.equal(d.href, 'about:blank');
 });
 
+await test('clickAnyUsesIdThenVisibleText', async () => {
+  await page.setContent('<h1>x</h1><input type="button" value="Presentación con Cl@ve" onclick="window.con=1"><button onclick="window.sin=1">Presentación  sin Cl@ve</button>');
+  await page.evaluate(bridge);
+  assert.equal(await page.evaluate('CH.run([["clickAny","btnEntrar","SIN CL@VE"]])'), 'ok');
+  assert.equal(await page.evaluate('window.sin'), 1);
+  assert.equal(await page.evaluate('window.con'), undefined);
+});
+
+await test('controlsListsFormElements', async () => {
+  await load('datos.html');
+  const c = await page.evaluate('CH.controls()');
+  assert.match(c, /input#txtIdCitado/);
+  assert.match(c, /select#txtPaisNac/);
+  assert.match(c, /input#btnEnviar="Aceptar"/);
+});
+
 await browser.close();
 console.log(failed ? `${failed} FAILED` : 'ALL PASSED');
 process.exit(failed ? 1 : 0);

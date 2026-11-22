@@ -10,6 +10,8 @@ class PageDiagnostics {
     private val problems = mutableListOf<String>()
     private var text: String? = null
     private var pageDebug: String? = null
+    private var controls: String? = null
+    private var stop: String? = null
     private val log = ArrayDeque<String>()
     private val clock = SimpleDateFormat("HH:mm:ss", Locale.ROOT)
 
@@ -40,6 +42,8 @@ class PageDiagnostics {
     @Synchronized fun hasSslError(): Boolean = problems.any { it.startsWith("certificado SSL") }
     @Synchronized fun onText(t: String?) { text = t }
     @Synchronized fun onPageDebug(json: String?) { pageDebug = json }
+    @Synchronized fun onControls(c: String?) { controls = c }
+    @Synchronized fun onStop(reason: String, kind: String) { stop = "$reason [pantalla: $kind]"; event("parada: $reason") }
 
     @Synchronized fun summary(): String = buildList {
         url?.let { add("URL: $it") }
@@ -54,8 +58,10 @@ class PageDiagnostics {
     /** Informe completo para copiar y pegar. */
     @Synchronized fun fullReport(): String = buildString {
         appendLine("== Cita Huellas: diagnóstico ==")
+        stop?.let { appendLine("motivo: $it") }
         appendLine(summary())
         pageDebug?.let { appendLine("página completa: $it") }
+        controls?.let { appendLine("campos: $it") }
         appendLine("eventos:")
         log.forEach { appendLine("  $it") }
     }

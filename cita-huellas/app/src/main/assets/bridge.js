@@ -55,6 +55,20 @@
       fire(el, 'change');
       return true;
     },
+    // Pulsa por id; si no existe, el primer botón/enlace cuyo texto contenga `needle`.
+    clickAny: function (id, needle) {
+      var el = find(id);
+      if (!el) {
+        var want = norm(needle);
+        var cands = document.querySelectorAll('button, input[type=button], input[type=submit], a');
+        el = Array.prototype.find.call(cands, function (c) {
+          return norm(c.innerText || c.value || '').indexOf(want) !== -1;
+        }) || null;
+      }
+      if (!el) return false;
+      el.click();
+      return true;
+    },
     trySelectByText: function (id, needle) {
       ops.selectByText(id, needle);
       return true;
@@ -91,6 +105,18 @@
         cookies: (function () { try { return document.cookie.length; } catch (e) { return 'bloqueadas'; } })(),
         head: html.slice(0, 400)
       });
+    },
+    controls: function () {
+      var out = [];
+      document.querySelectorAll('input, select, button, textarea').forEach(function (el) {
+        if (el.type === 'hidden') return;
+        var label = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.name && el.name !== el.id ? '[' + el.name + ']' : '');
+        var v = el.tagName === 'SELECT'
+          ? (el.options.length + ' opciones, elegida: ' + (el.selectedIndex >= 0 ? el.options[el.selectedIndex].text : ''))
+          : (el.value || el.innerText || '');
+        out.push(label + '="' + String(v).replace(/\s+/g, ' ').trim().slice(0, 40) + '"');
+      });
+      return out.join('; ').slice(0, 2000);
     },
     options: function (id) {
       var el = find(id);

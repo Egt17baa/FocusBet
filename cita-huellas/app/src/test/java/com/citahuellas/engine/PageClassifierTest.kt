@@ -13,6 +13,8 @@ class PageClassifierTest {
     @Test fun province() = assertEquals(PageKind.PROVINCE, k(snap("form", "btnAceptar")))
     @Test fun officeProcedure() = assertEquals(PageKind.OFFICE_PROCEDURE, k(snap("form", "sede", "tramiteGrupo[1]", "btnAceptar")))
     @Test fun instructions() = assertEquals(PageKind.INSTRUCTIONS, k(snap("btnEntrar", text = "PRESENTACIÓN SIN CL@VE")))
+    @Test fun instructionsByTextWhenButtonRenamed() =
+        assertEquals(PageKind.INSTRUCTIONS, k(snap("sede", "tramiteGrupo[1]", "btnSinClave", text = "Presentación sin Cl@ve")))
     @Test fun personalData() = assertEquals(PageKind.PERSONAL_DATA, k(snap("txtIdCitado", "txtDesCitado", "btnEnviar")))
     @Test fun request() = assertEquals(PageKind.REQUEST, k(snap("btnEnviar", "btnConsultar", text = "SOLICITAR CITA")))
     @Test fun noAppointments() = assertEquals(PageKind.NO_APPOINTMENTS, k(snap("btnSalir", text = "En este momento no hay citas disponibles.")))

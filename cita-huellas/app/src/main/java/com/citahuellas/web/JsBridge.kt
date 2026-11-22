@@ -17,7 +17,7 @@ object JsBridge {
             step("selectByText", "tramiteGrupo[1]", "TOMA DE HUELLAS"),
             step("click", "btnAceptar"),
         )
-        Action.EnterWithoutClave -> run(step("click", "btnEntrar"))
+        Action.EnterWithoutClave -> run(step("clickAny", "btnEntrar", "SIN CL@VE"))
         is Action.FillPersonal -> run(
             step("check", "rdbTipoDocNie"),
             step("setValue", "txtIdCitado", action.profile.nie.trim().uppercase()),
@@ -37,6 +37,7 @@ object JsBridge {
     fun fillSmsCode(code: String): String = run(step("setValue", "txtCodigoVerificacion", code))
 
     const val SNAPSHOT = "CH.snapshot()"
+    const val CONTROLS = "CH.controls()"
     const val COUNTRIES = "CH.options('txtPaisNac')"
 
     /** `evaluateJavascript` devuelve el resultado como literal JSON. */
@@ -52,6 +53,7 @@ object JsBridge {
         "txtPaisNac" -> "el país de nacionalidad"
         "txtIdCitado" -> "el campo NIE"
         "txtDesCitado" -> "el campo nombre"
+        "btnEntrar" -> "el botón Presentación sin Cl@ve"
         else -> id
     }
 }
