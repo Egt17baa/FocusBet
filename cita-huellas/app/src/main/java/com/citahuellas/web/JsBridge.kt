@@ -42,6 +42,8 @@ object JsBridge {
     fun fillSmsCode(code: String): String = run(step("setValue", "txtCodigoVerificacion", code))
 
     const val SNAPSHOT = "CH.snapshot()"
+    /** En "no hay citas": pulsar Aceptar como haría una persona (vuelve a la portada). */
+    val ACCEPT_NO_APPOINTMENTS = run(step("clickAny", "btnSubmit", "ACEPTAR"))
     const val CONTROLS = "CH.controls()"
     const val COUNTRIES = "CH.options('txtPaisNac')"
 

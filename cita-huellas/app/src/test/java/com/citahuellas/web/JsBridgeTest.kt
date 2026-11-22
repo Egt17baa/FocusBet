@@ -66,6 +66,9 @@ class JsBridgeTest {
         )
     }
 
+    @Test fun noAppointmentsAcceptsLikeAPerson() =
+        assertEquals("CH.run([[\"clickAny\",\"btnSubmit\",\"ACEPTAR\"]])", JsBridge.ACCEPT_NO_APPOINTMENTS)
+
     @Test fun parseResult() {
         assertNull(JsBridge.missingField("\"ok\""))
         assertEquals("txtPaisNac", JsBridge.missingField("\"missing:txtPaisNac\""))

@@ -44,11 +44,11 @@ fun SettingsScreen(current: AppSettings, padding: PaddingValues, onSave: (AppSet
         GlassCard {
             Text("Ritmo de búsqueda", style = MaterialTheme.typography.titleMedium)
             Text("Cada ${interval.roundToInt()} segundos", modifier = Modifier.padding(top = 8.dp))
-            Slider(interval, { interval = (it / 10).roundToInt() * 10f; saved = false }, valueRange = 30f..300f)
+            Slider(interval, { interval = (it / 5).roundToInt() * 5f; saved = false }, valueRange = 10f..300f)
             Text("Hasta ${attempts.roundToInt()} intentos")
             Slider(attempts, { attempts = it.roundToInt().toFloat(); saved = false }, valueRange = 1f..20f, steps = 18)
             Text(
-                "Recomendado: 60 s y 10 intentos. Ir más rápido puede hacer que la web te bloquee un rato.",
+                "Cuanto más rápido, más riesgo de que la web te corte un rato. Si pasa, la app se para y te avisa.",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }

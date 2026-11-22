@@ -90,7 +90,7 @@ class SearchController(
         val seq = ++pageSeq
         job?.cancel()
         job = scope.launch {
-            delay(Random.nextLong(2_000, 4_001))
+            delay(Random.nextLong(1_000, 2_001))
             if (seq != pageSeq) return@launch
             step(e)
         }
@@ -164,7 +164,7 @@ class SearchController(
             waiting = false
         }
         state = state.copy(status = "Intento ${a.attempt} de ${state.max}…", secondsLeft = null)
-        web.loadUrl(ENTRY_URL)
+        if (JsBridge.missingField(eval(JsBridge.ACCEPT_NO_APPOINTMENTS)) != null) web.loadUrl(ENTRY_URL)
     }
 
     private suspend fun retryAfterError(a: Action.RetryAfterError) {
