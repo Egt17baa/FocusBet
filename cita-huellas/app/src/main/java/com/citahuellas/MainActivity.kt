@@ -1,13 +1,114 @@
 package com.citahuellas
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.Text
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
+import com.citahuellas.data.AppSettings
+import com.citahuellas.data.Crypto
+import com.citahuellas.data.Profile
+import com.citahuellas.data.ProfileStore
+import com.citahuellas.data.SettingsStore
+import com.citahuellas.data.keystoreKey
+import com.citahuellas.search.Notifier
+import com.citahuellas.search.SearchController
+import com.citahuellas.search.SmsConsent
+import com.citahuellas.ui.App
+import com.citahuellas.ui.AppCallbacks
+import com.citahuellas.ui.contactFor
+import com.citahuellas.ui.theme.CitaTheme
+import java.io.File
 
 class MainActivity : ComponentActivity() {
+    private lateinit var profiles: ProfileStore
+    private lateinit var settingsStore: SettingsStore
+    private lateinit var controller: SearchController
+    private lateinit var sms: SmsConsent
+    private lateinit var web: WebView
+
+    private var people by mutableStateOf(emptyList<Profile>())
+    private var settings by mutableStateOf(AppSettings())
+    private var smsCode by mutableStateOf("")
+
+    private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { Text("Cita Huellas") }
+        enableEdgeToEdge()
+
+        val crypto = Crypto { keystoreKey() }
+        profiles = ProfileStore(File(filesDir, "profiles.bin"), crypto)
+        settingsStore = SettingsStore(File(filesDir, "settings.bin"), crypto)
+        people = runCatching { profiles.load() }.getOrDefault(emptyList())
+        settings = runCatching { settingsStore.load() }.getOrDefault(AppSettings())
+
+        web = WebView(this).apply {
+            settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
+            setBackgroundColor(Color.WHITE)
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView, url: String) = controller.onPageFinished()
+                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) =
+                    request.url.host?.endsWith("administracionelectronica.gob.es") != true
+            }
+        }
+        sms = SmsConsent(this) { code ->
+            smsCode = code
+            controller.fillSms(code)
+        }
+        controller = SearchController(
+            web, assets.open("bridge.js").bufferedReader().use { it.readText() },
+            Notifier(this), lifecycleScope, onSmsStep = { sms.listen() },
+        )
+
+        if (Build.VERSION.SDK_INT >= 33) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
+
+        setContent {
+            CitaTheme {
+                val search = controller.state
+                LaunchedEffect(search.active) {
+                    if (search.active) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                App(
+                    people, settings, search, smsCode, web,
+                    AppCallbacks(
+                        savePerson = { profiles.upsert(it); people = profiles.load() },
+                        deletePerson = { profiles.delete(it); people = profiles.load() },
+                        saveSettings = { settingsStore.save(it); settings = settingsStore.load() },
+                        start = { p, mine ->
+                            val c = contactFor(p, mine, settings)
+                            smsCode = ""
+                            controller.start(p, c.phone, c.email, mine, settings)
+                        },
+                        cancel = { controller.cancel() },
+                        step = { p, mine -> val c = contactFor(p, mine, settings); controller.doCurrentStep(p, c.phone, c.email, settings) },
+                        fillSms = { controller.fillSms(it) },
+                        setSmsCode = { smsCode = it },
+                    ),
+                )
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        sms.release()
+        web.destroy()
+        super.onDestroy()
     }
 }
