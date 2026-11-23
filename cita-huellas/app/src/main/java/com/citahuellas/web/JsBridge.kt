@@ -30,7 +30,7 @@ object JsBridge {
             step("setValue", "emailUNO", action.email.trim()),
             step("setValue", "emailDOS", action.email.trim()),
         )
-        is Action.WaitAndRestart, is Action.RetryAfterError, is Action.Found, is Action.Stop -> null
+        is Action.WaitAndRestart, is Action.RetryAfterError, is Action.WaitForPage, is Action.Found, is Action.Stop -> null
     }
 
     /** Segunda parte de una acción, tras dejar que la web reaccione (p. ej. rellenar el subtrámite). */

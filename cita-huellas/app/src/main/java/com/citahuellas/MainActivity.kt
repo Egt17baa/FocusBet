@@ -123,6 +123,11 @@ class MainActivity : ComponentActivity() {
                         },
                         cancel = { controller.cancel() },
                         openWeb = { controller.openOnly() },
+                        clearCookies = {
+                            controller.clearWebDataNow {
+                                android.widget.Toast.makeText(this, "Cookies de la web borradas", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         copyReport = {
                             val cm = getSystemService(android.content.ClipboardManager::class.java)
                             cm.setPrimaryClip(android.content.ClipData.newPlainText("diagnóstico", controller.diagnostics.fullReport()))

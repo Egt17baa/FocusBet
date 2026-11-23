@@ -14,7 +14,9 @@ sealed interface Action {
     data object Request : Action
     data class WaitAndRestart(val delayMs: Long, val attempt: Int) : Action
     /** Fallo de carga del navegador: esperar y volver a la portada, sin gastar intento. */
-    data class RetryAfterError(val delayMs: Long, val retry: Int) : Action
+    data class RetryAfterError(val delayMs: Long, val retry: Int, val clearCookies: Boolean = false) : Action
+    /** Página en blanco (comprobación de la web que se recarga sola): esperar y volver a mirar. */
+    data class WaitForPage(val delayMs: Long) : Action
     data class FillContact(val phone: String, val email: String) : Action
     data class Found(val kind: PageKind) : Action
     data class Stop(val reason: String) : Action
@@ -42,6 +44,7 @@ class SearchEngine(
     private var lastKind: PageKind? = null
     private var sameKindCount = 0
     private var networkRetries = 0
+    private var blankWaits = 0
     /** Ya se han enviado los datos: una pantalla rara a partir de aquí puede ser una cita. */
     private var sentData = false
 
@@ -56,9 +59,17 @@ class SearchEngine(
             sentData = false
             if (networkRetries >= 2) return stop("La web no responde tras varios reintentos. Espera un rato (o prueba con datos móviles).")
             networkRetries++
-            return Action.RetryAfterError(random.nextLong(5_000, 10_001), networkRetries)
+            return Action.RetryAfterError(random.nextLong(5_000, 10_001), networkRetries, clearCookies = networkRetries == 2)
         }
         networkRetries = 0
+
+        if (kind == PageKind.BLANK) {
+            lastKind = null
+            if (blankWaits >= 4) return stop("La web se queda en blanco. Prueba \"Borrar cookies de la web\" o espera un rato.")
+            blankWaits++
+            return Action.WaitForPage(2_000)
+        }
+        blankWaits = 0
 
         sameKindCount = if (kind == lastKind) sameKindCount + 1 else 1
         lastKind = kind
@@ -81,7 +92,7 @@ class SearchEngine(
                 }
             PageKind.CONTACT, PageKind.SLOT_OR_SMS, PageKind.OFFICE_AVAILABLE -> assist(kind)
             PageKind.CAPTCHA -> stop("Hay un captcha: resuélvelo tú en la web")
-            PageKind.NETWORK_ERROR -> error("tratado arriba")
+            PageKind.NETWORK_ERROR, PageKind.BLANK -> error("tratado arriba")
             PageKind.THROTTLED -> stop("La web ha cortado la conexión: suele ser un bloqueo temporal por muchos intentos. Espera 30–60 minutos (o prueba con datos móviles).")
             PageKind.ERROR -> stop("La web ha dado un error o la sesión ha caducado")
             PageKind.UNKNOWN -> stop("Pantalla no reconocida: sigue tú a mano")

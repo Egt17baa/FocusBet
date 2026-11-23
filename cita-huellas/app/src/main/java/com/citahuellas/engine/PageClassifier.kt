@@ -7,7 +7,7 @@ data class PageSnapshot(val url: String, val ids: Set<String>, val text: String)
 
 enum class PageKind {
     PROVINCE, OFFICE_PROCEDURE, INSTRUCTIONS, PERSONAL_DATA, REQUEST, NO_APPOINTMENTS,
-    OFFICE_AVAILABLE, CONTACT, SLOT_OR_SMS, CAPTCHA, NETWORK_ERROR, THROTTLED, ERROR, UNKNOWN,
+    OFFICE_AVAILABLE, CONTACT, SLOT_OR_SMS, CAPTCHA, NETWORK_ERROR, BLANK, THROTTLED, ERROR, UNKNOWN,
 }
 
 /** Mayúsculas y sin tildes, para comparar textos de la web. */
@@ -41,7 +41,8 @@ object PageClassifier {
             has("txtTelefonoCitado") -> PageKind.CONTACT
             has("idSede") -> PageKind.OFFICE_AVAILABLE
             says(browserErrorTexts) -> PageKind.NETWORK_ERROR
-            text.trim().length < 20 || says(throttleTexts) -> PageKind.THROTTLED
+            text.trim().length < 20 -> PageKind.BLANK
+            says(throttleTexts) -> PageKind.THROTTLED
             says(errorTexts) -> PageKind.ERROR
             says(noAppointmentTexts) -> PageKind.NO_APPOINTMENTS
             has("txtIdCitado") -> PageKind.PERSONAL_DATA

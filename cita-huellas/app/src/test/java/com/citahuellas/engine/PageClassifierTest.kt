@@ -25,7 +25,7 @@ class PageClassifierTest {
     @Test fun captchaImage() = assertEquals(PageKind.CAPTCHA, k(snap("__captchaimg", "btnEnviar")))
     @Test fun unknownPage() = assertEquals(PageKind.UNKNOWN, k(snap("algoNuevo")))
     @Test fun blankOrThrottleStops() {
-        assertEquals(PageKind.THROTTLED, k(PageSnapshot("https://x/", emptySet(), "")))
+        assertEquals(PageKind.BLANK, k(PageSnapshot("https://x/", emptySet(), "")))
         assertEquals(PageKind.THROTTLED, k(snap(text = "Too Many Requests")))
         assertEquals(PageKind.THROTTLED, k(snap(text = "The requested URL was rejected. Please consult with your administrator.")))
     }

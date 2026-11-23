@@ -75,6 +75,19 @@ class SearchController(
         web.loadUrl(ENTRY_URL)
     }
 
+    /** Borra cookies y almacenamiento de la web: la siguiente carga es como una visita nueva. */
+    suspend fun clearWebData() {
+        suspendCancellableCoroutine { cont ->
+            android.webkit.CookieManager.getInstance().removeAllCookies { if (cont.isActive) cont.resume(Unit) }
+        }
+        android.webkit.CookieManager.getInstance().flush()
+        android.webkit.WebStorage.getInstance().deleteAllData()
+    }
+
+    fun clearWebDataNow(onDone: () -> Unit) {
+        scope.launch { clearWebData(); onDone() }
+    }
+
     fun cancel() {
         job?.cancel()
         waiting = false
@@ -127,10 +140,16 @@ class SearchController(
         when (action) {
             is Action.WaitAndRestart -> waitAndRestart(action)
             is Action.RetryAfterError -> retryAfterError(action)
+            is Action.WaitForPage -> {
+                state = state.copy(status = "Esperando a que la web cargue…", secondsLeft = null)
+                val seq = pageSeq
+                delay(action.delayMs)
+                if (seq == pageSeq) step(e) // si entretanto cargó otra página, ya se ocupa onPageFinished
+            }
             is Action.Found -> found(action.kind)
             is Action.Stop -> stop(
                 if (diagnostics.hasSslError()) "La app no puede verificar el certificado de seguridad de la web. Avisa para actualizar la app.\n${diagnostics.summary()}"
-                else if (kind in setOf(PageKind.NETWORK_ERROR, PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
+                else if (kind in setOf(PageKind.NETWORK_ERROR, PageKind.BLANK, PageKind.THROTTLED, PageKind.ERROR, PageKind.UNKNOWN)) "${action.reason}\n${diagnostics.summary()}" else action.reason
             )
             else -> {
                 state = state.copy(status = label(action), secondsLeft = null)
@@ -179,6 +198,10 @@ class SearchController(
             }
         } finally {
             waiting = false
+        }
+        if (a.clearCookies) {
+            diagnostics.event("borrando cookies de la web antes de reintentar")
+            clearWebData()
         }
         state = state.copy(status = "Cargando de nuevo…", secondsLeft = null)
         web.loadUrl(ENTRY_URL)

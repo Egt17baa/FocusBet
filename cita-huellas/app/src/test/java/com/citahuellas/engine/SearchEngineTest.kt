@@ -88,8 +88,9 @@ class SearchEngineTest {
     @Test fun networkErrorRetriesTwiceThenStops() {
         val e = engine()
         val r1 = e.next(PageKind.NETWORK_ERROR)
-        assertTrue(r1 is Action.RetryAfterError && r1.delayMs in 5_000..10_000)
-        assertTrue(e.next(PageKind.NETWORK_ERROR) is Action.RetryAfterError)
+        assertTrue(r1 is Action.RetryAfterError && r1.delayMs in 5_000..10_000 && !r1.clearCookies)
+        val r2 = e.next(PageKind.NETWORK_ERROR)
+        assertTrue("el 2.º reintento empieza de cero sin cookies", r2 is Action.RetryAfterError && r2.clearCookies)
         assertEquals(
             Action.Stop("La web no responde tras varios reintentos. Espera un rato (o prueba con datos móviles)."),
             e.next(PageKind.NETWORK_ERROR),
@@ -131,5 +132,18 @@ class SearchEngineTest {
         assertTrue(e.next(PageKind.NO_APPOINTMENTS) is Action.WaitAndRestart)
         e.next(PageKind.PROVINCE)
         assertTrue(e.next(PageKind.UNKNOWN) is Action.Stop)
+    }
+
+    @Test fun blankPageWaitsBeforeGivingUp() {
+        val e = engine()
+        repeat(4) { assertEquals(Action.WaitForPage(2_000), e.next(PageKind.BLANK)) }
+        assertTrue(e.next(PageKind.BLANK) is Action.Stop)
+    }
+
+    @Test fun blankWaitResetsWhenPageAppears() {
+        val e = engine()
+        repeat(3) { e.next(PageKind.BLANK) }
+        assertEquals(Action.SelectProvince, e.next(PageKind.PROVINCE))
+        repeat(4) { assertEquals(Action.WaitForPage(2_000), e.next(PageKind.BLANK)) }
     }
 }

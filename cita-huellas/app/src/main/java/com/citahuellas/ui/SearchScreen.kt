@@ -73,6 +73,7 @@ fun SearchScreen(
     onStart: (Profile, Boolean) -> Unit,
     onCancel: () -> Unit,
     onOpenWeb: () -> Unit,
+    onClearCookies: () -> Unit,
     onCopyReport: () -> Unit,
     onStep: (Profile, Boolean) -> Unit,
     onFillSms: (String) -> Unit,
@@ -115,7 +116,10 @@ fun SearchScreen(
                 Button({ person?.let { onStart(it, useMine) } }, enabled = person != null && contactOk, shape = CircleShape, modifier = Modifier.fillMaxWidth()) {
                     Text("Buscar cita · cada ${settings.intervalSec} s, hasta ${settings.maxAttempts} veces")
                 }
-                TextButton(onOpenWeb, modifier = Modifier.fillMaxWidth()) { Text("Solo abrir la web") }
+                Row(Modifier.fillMaxWidth()) {
+                    TextButton(onOpenWeb, modifier = Modifier.weight(1f)) { Text("Solo abrir la web") }
+                    TextButton(onClearCookies, modifier = Modifier.weight(1f)) { Text("Borrar cookies de la web") }
+                }
             }
         }
 
