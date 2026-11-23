@@ -22,6 +22,6 @@ data class AppSettings(
 )
 
 fun AppSettings.clamped(): AppSettings = copy(
-    intervalSec = intervalSec.coerceIn(10, 300),
+    intervalSec = intervalSec.coerceIn(5, 300),
     maxAttempts = maxAttempts.coerceIn(1, 20),
 )

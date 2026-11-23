@@ -9,7 +9,7 @@ App Android de uso personal para pedir cita de **toma de huellas en Madrid** en 
 ## Objetivos
 
 - Recorrer automáticamente los pasos fijos del trámite con los datos de un perfil guardado.
-- Reintentar cuando no hay citas: por defecto cada **60 s**, máximo **10 intentos** (ajustable; intervalo mínimo 10 s — decidido por la persona usuaria tras probar).
+- Reintentar cuando no hay citas: por defecto cada **60 s**, máximo **10 intentos** (ajustable; intervalo mínimo 5 s — decidido por la persona usuaria tras probar).
 - Avisar con **notificación con sonido y vibración** cuando haya cita, y quedarse quieta en esa pantalla.
 - Guardar perfiles de personas **cifrados y solo en el móvil**.
 - Código SMS: autorrellenarlo si llega al propio móvil (con permiso por mensaje), o escribirlo a mano si llega al móvil del familiar.
@@ -23,7 +23,7 @@ App Android de uso personal para pedir cita de **toma de huellas en Madrid** en 
 ## Anti-objetivos (fracaso aunque "funcione")
 
 - Resolver o saltarse captchas, falsificar huella de navegador, simular movimientos de ratón o cualquier técnica para ocultar la automatización.
-- Reintentar sin límite o más rápido de 10 s.
+- Reintentar sin límite o más rápido de 5 s.
 - Confirmar una cita sin que la persona usuaria pulse confirmar.
 - Que los datos personales salgan del móvil (más allá de enviarlos a la propia web oficial).
 

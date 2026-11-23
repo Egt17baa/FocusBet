@@ -44,7 +44,7 @@ fun SettingsScreen(current: AppSettings, padding: PaddingValues, onSave: (AppSet
         GlassCard {
             Text("Ritmo de búsqueda", style = MaterialTheme.typography.titleMedium)
             Text("Cada ${interval.roundToInt()} segundos", modifier = Modifier.padding(top = 8.dp))
-            Slider(interval, { interval = (it / 5).roundToInt() * 5f; saved = false }, valueRange = 10f..300f)
+            Slider(interval, { interval = (it / 5).roundToInt() * 5f; saved = false }, valueRange = 5f..300f)
             Text("Hasta ${attempts.roundToInt()} intentos")
             Slider(attempts, { attempts = it.roundToInt().toFloat(); saved = false }, valueRange = 1f..20f, steps = 18)
             Text(
