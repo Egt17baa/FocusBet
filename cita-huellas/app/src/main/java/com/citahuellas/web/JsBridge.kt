@@ -33,6 +33,26 @@ object JsBridge {
         is Action.WaitAndRestart, is Action.RetryAfterError, is Action.WaitForPage, is Action.Found, is Action.Stop -> null
     }
 
+    /**
+     * La misma acción, campo a campo, para rellenar con pausas y que se vea cada dato.
+     * Datos personales en el orden nombre → NIE → país.
+     */
+    fun stepsFor(action: Action): List<String> = when (action) {
+        is Action.FillPersonal -> listOf(
+            run(step("check", "rdbTipoDocNie")),
+            run(step("setValue", "txtDesCitado", action.profile.fullName.trim())),
+            run(step("setValue", "txtIdCitado", action.profile.nie.trim().uppercase())),
+            run(step("selectByText", "txtPaisNac", action.profile.country)),
+            run(step("click", "btnEnviar")),
+        )
+        is Action.FillContact -> listOf(
+            run(step("setValue", "txtTelefonoCitado", action.phone.filter(Char::isDigit))),
+            run(step("setValue", "emailUNO", action.email.trim())),
+            run(step("setValue", "emailDOS", action.email.trim())),
+        )
+        else -> listOfNotNull(js(action))
+    }
+
     /** Segunda parte de una acción, tras dejar que la web reaccione (p. ej. rellenar el subtrámite). */
     fun followUp(action: Action): String? = when (action) {
         Action.SelectProcedure -> run(step("needChoice", "subtramite"), step("click", "btnAceptar"))

@@ -114,7 +114,7 @@ class SearchController(
         scope.launch {
             val kind = currentKind() ?: return@launch
             val action = SearchEngine(profile, phone, email, settings).next(kind)
-            JsBridge.js(action)?.let { eval(it) }
+            runSteps(JsBridge.stepsFor(action))
         }
     }
 
@@ -153,7 +153,7 @@ class SearchController(
             )
             else -> {
                 state = state.copy(status = label(action), secondsLeft = null)
-                var missing = JsBridge.missingField(eval(JsBridge.js(action)!!))
+                var missing = runSteps(JsBridge.stepsFor(action))
                 val followUp = JsBridge.followUp(action)
                 if (missing == null && followUp != null) {
                     delay(Random.nextLong(1_500, 2_501))
@@ -168,6 +168,15 @@ class SearchController(
                 }
             }
         }
+    }
+
+    /** Ejecuta los pasos uno a uno con pausas cortas; antes de pulsar un botón, una pausa algo mayor. */
+    private suspend fun runSteps(steps: List<String>): String? {
+        steps.forEachIndexed { i, js ->
+            if (i > 0) delay(if ("\"click" in js) Random.nextLong(1_000, 2_001) else Random.nextLong(700, 1_601))
+            JsBridge.missingField(eval(js))?.let { return it }
+        }
+        return null
     }
 
     private suspend fun waitAndRestart(a: Action.WaitAndRestart) {

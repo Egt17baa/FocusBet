@@ -69,6 +69,29 @@ class JsBridgeTest {
     @Test fun noAppointmentsAcceptsLikeAPerson() =
         assertEquals("CH.run([[\"clickAny\",\"btnSubmit\",\"ACEPTAR\"]])", JsBridge.ACCEPT_NO_APPOINTMENTS)
 
+    @Test fun personalDataIsFilledOneFieldAtATimeNameNieCountry() {
+        val steps = JsBridge.stepsFor(Action.FillPersonal(hostile.copy(fullName = "Ana", nie = "x1234567l")))
+        assertEquals(
+            listOf(
+                "CH.run([[\"check\",\"rdbTipoDocNie\"]])",
+                "CH.run([[\"setValue\",\"txtDesCitado\",\"Ana\"]])",
+                "CH.run([[\"setValue\",\"txtIdCitado\",\"X1234567L\"]])",
+                "CH.run([[\"selectByText\",\"txtPaisNac\",\"PERU\"]])",
+                "CH.run([[\"click\",\"btnEnviar\"]])",
+            ),
+            steps,
+        )
+    }
+
+    @Test fun contactIsFilledOneFieldAtATime() {
+        assertEquals(3, JsBridge.stepsFor(Action.FillContact("611", "a@b.c")).size)
+    }
+
+    @Test fun simpleActionsAreSingleStep() {
+        assertEquals(listOf(JsBridge.js(Action.Request)), JsBridge.stepsFor(Action.Request))
+        assertTrue(JsBridge.stepsFor(Action.Stop("x")).isEmpty())
+    }
+
     @Test fun parseResult() {
         assertNull(JsBridge.missingField("\"ok\""))
         assertEquals("txtPaisNac", JsBridge.missingField("\"missing:txtPaisNac\""))
